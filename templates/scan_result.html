@@ -3,17 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <title>Scan Results</title>
+    <style>
+        .detected { color: red; font-weight: bold; }
+        .not-detected { color: green; }
+    </style>
 </head>
 <body>
     <h1>Scan Results</h1>
-    {% for scan_name, scan in scans.items() %}
-        <p>{{ scan_name }}: 
-        {% if scan.detected %}
-            <span style="color: red;">Detected: {{ scan.result }}</span>
+    {% for scan_name, scan_data in scans.items() %}
+        <h2>{{ scan_name }}</h2>
+        {% if scan_data.detected %}
+            <p class="detected">Detected: {{ scan_data.result }}</p>
+            {% if scan_name == 'VirusTotal' %}
+                <ul>
+                    {% for engine, result in scan_data.result.items() %}
+                        <li>{{ engine }}: {% if result.detected %} Detected: {{ result.result }} {% else %} Not Detected {% endif %}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         {% else %}
-            Not Detected
+            <p class="not-detected">Not Detected</p>
         {% endif %}
-        </p>
     {% endfor %}
 </body>
 </html>

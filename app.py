@@ -42,11 +42,24 @@ def scan_file():
         return render_template('error.html', error=str(e)), 500
 
 def get_scan_results(file_name):
-    # Simulated scan result; replace with actual logic for scanning the file
+    # Simulated scan result with VirusTotal and Hybrid Analysis
     return {
         'scans': {
-            'Malwarebytes': {'detected': True, 'result': 'Malware detected'},
-            'Avast': {'detected': False, 'result': None}
+            'VirusTotal': {
+                'detected': True,
+                'result': {
+                    'Malwarebytes': {'detected': True, 'result': 'Malware detected'},
+                    'Avast': {'detected': False, 'result': None},
+                    'Kaspersky': {'detected': False, 'result': None},
+                    'Norton': {'detected': True, 'result': 'Threat found'},
+                    'McAfee': {'detected': False, 'result': None},
+                    'Bitdefender': {'detected': True, 'result': 'Suspicious activity detected'}
+                }
+            },
+            'Hybrid Analysis': {
+                'detected': True,
+                'result': 'Suspicious behavior detected in the sample.'
+            }
         }
     }
 
