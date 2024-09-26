@@ -3,54 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan Results</title>
+    <title>Scan Result</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #333;
-        }
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            max-width: 600px;
-            width: 100%;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        h1 {
-            font-size: 24px;
-            color: #4CAF50;
-        }
-        p {
-            font-size: 16px;
-        }
-        .scan-source {
-            font-weight: bold;
-            color: #2196F3;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .result { background: white; padding: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Scan Results</h1>
-    <p>File was scanned using <span class="scan-source">{{ result.scan_source }}</span>.</p>
-    <h2>Scan Data</h2>
-    <pre>{{ result.scan_data | tojson }}</pre>
-    <p><em>This file will be deleted from our system after 5 minutes.</em></p>
+<div class="result">
+    <h2>Scan Results</h2>
+
+    <h3>Scan Data:</h3>
+    <pre>{{ result.scan_data | tojson(indent=4) }}</pre>
+
+    <p>{{ deletion_message }}</p>
 </div>
 
 </body>
