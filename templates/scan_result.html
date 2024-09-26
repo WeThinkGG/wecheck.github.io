@@ -2,35 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan Result</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
-        .result { background: white; padding: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h2 { color: #333; }
-        .alert { color: red; font-weight: bold; }
-        .clean { color: green; }
-    </style>
+    <title>Scan Results</title>
 </head>
 <body>
-
-<div class="result">
-    <h2>Scan Results</h2>
-
-    <h3>Scan Data:</h3>
-    <pre>
-    {% for scan in result.scan_data.scans %}
-        {{ scan.key }}: 
-        {% if scan.value.detected %}
-            <span class="alert">Detected: {{ scan.value.result }}</span>
+    <h1>Scan Results</h1>
+    {% for scan_name, scan in scans.items() %}
+        <p>{{ scan_name }}: 
+        {% if scan.detected %}
+            <span style="color: red;">Detected: {{ scan.result }}</span>
         {% else %}
-            <span class="clean">Clean</span>
+            Not Detected
         {% endif %}
+        </p>
     {% endfor %}
-    </pre>
-
-    <p>{{ deletion_message }}</p>
-</div>
-
 </body>
 </html>
