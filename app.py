@@ -1,84 +1,54 @@
+import logging
 from flask import Flask, request, jsonify, render_template
-import requests
-import os
-import hashlib
-import time
-import threading
+import traceback
 
 app = Flask(__name__)
 
-# Assign API Keys directly (for development/testing purposes only)
-VIRUSTOTAL_API_KEY = '12ffa54ff741d2df87e2f09074d91b6f69c514654e73d6b1eb29d8497f8b5fb0'
-HYBRID_ANALYSIS_API_KEY = 'v051739qfe362472i4aj097h6f975483dqnqsiawab71a92d080vdmyua2f9066a'
-
-# VirusTotal check
-def check_with_virustotal(file_hash):
-    try:
-        params = {'apikey': VIRUSTOTAL_API_KEY, 'resource': file_hash}
-        response = requests.get('https://www.virustotal.com/vtapi/v2/file/report', params=params)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise Exception("VirusTotal API failure")
-    except Exception as e:
-        print(f"VirusTotal failed: {e}")
-        return None
-
-# Fallback: Hybrid Analysis check
-def check_with_hybrid_analysis(file):
-    try:
-        files = {'file': open(file, 'rb')}
-        headers = {'api-key': HYBRID_ANALYSIS_API_KEY}
-        response = requests.post('https://www.hybrid-analysis.com/api/v2/scan/file', headers=headers, files=files)
-        return response.json()
-    except Exception as e:
-        print(f"Hybrid Analysis failed: {e}")
-        return None
-
-# Deletes a file after a delay (1 minute)
-def delete_file_after_delay(filename, delay):
-    time.sleep(delay)
-    if os.path.exists(filename):
-        os.remove(filename)
-        print(f"File {filename} has been deleted from the system.")
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html')  # Render a simple index page with upload form
 
 @app.route('/scan', methods=['POST'])
 def scan_file():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file uploaded'}), 400
+    try:
+        # Log the request data for debugging
+        app.logger.debug('Received scan request with data: %s', request.form)
 
-    file = request.files['file']
-    file.save(file.filename)
+        # Check if a file is uploaded
+        if 'file' not in request.files:
+            raise ValueError("No file part in the request")
+        
+        file = request.files['file']
 
-    # Calculate file hash (MD5)
-    file_hash = hashlib.md5(open(file.filename, 'rb').read()).hexdigest()
+        if file.filename == '':
+            raise ValueError("No selected file")
+        
+        # Here you would typically process the uploaded file for scanning.
+        # For demonstration, we’ll just call a mock function.
+        scan_result = get_scan_results(file.filename)  # Your method to get results
+        
+        # Log the scan result for debugging
+        app.logger.debug('Scan result: %s', scan_result)
 
-    # First attempt to scan using VirusTotal
-    vt_result = check_with_virustotal(file_hash)
-    if vt_result:
-        scan_result = {
-            'scan_source': 'VirusTotal',
-            'scan_data': vt_result
+        # Ensure scan_result is structured correctly
+        return render_template('scan_result.html', scans=scan_result['scans'])
+
+    except Exception as e:
+        app.logger.error('Error occurred while scanning file: %s', str(e))
+        app.logger.debug(traceback.format_exc())  # Log the full traceback
+        return render_template('error.html', error=str(e)), 500
+
+def get_scan_results(file_name):
+    # Simulated scan result; replace with actual logic for scanning the file
+    return {
+        'scans': {
+            'Malwarebytes': {'detected': True, 'result': 'Malware detected'},
+            'Avast': {'detected': False, 'result': None}
         }
-    else:
-        # If VirusTotal fails, use Hybrid Analysis as fallback
-        ha_result = check_with_hybrid_analysis(file.filename)
-        if ha_result:
-            scan_result = {
-                'scan_source': 'Hybrid Analysis',
-                'scan_data': ha_result
-            }
-        else:
-            return jsonify({'error': 'All scan services failed'}), 500
-
-    # Delete file after 1 minute (60 seconds)
-    threading.Thread(target=delete_file_after_delay, args=(file.filename, 60)).start()
-
-    return render_template('scan_result.html', result=scan_result)
+    }
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True)  # Enable Flask's debugger
