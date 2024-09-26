@@ -8,6 +8,8 @@
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
         .result { background: white; padding: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         h2 { color: #333; }
+        .alert { color: red; font-weight: bold; }
+        .clean { color: green; }
     </style>
 </head>
 <body>
@@ -16,7 +18,16 @@
     <h2>Scan Results</h2>
 
     <h3>Scan Data:</h3>
-    <pre>{{ result.scan_data | tojson(indent=4) }}</pre>
+    <pre>
+    {% for scan in result.scan_data.scans %}
+        {{ scan.key }}: 
+        {% if scan.value.detected %}
+            <span class="alert">Detected: {{ scan.value.result }}</span>
+        {% else %}
+            <span class="clean">Clean</span>
+        {% endif %}
+    {% endfor %}
+    </pre>
 
     <p>{{ deletion_message }}</p>
 </div>
