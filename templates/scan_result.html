@@ -2,58 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scan Results</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
+            margin: 20px;
         }
-        h1 {
+        h2 {
             color: #333;
         }
-        .scan-section {
-            background: #fff;
+        .result {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            padding: 15px;
         }
         .detected {
             color: red;
-            font-weight: bold;
         }
         .not-detected {
             color: green;
         }
-        .suspicious {
-            color: orange;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
-    <h1>Scan Results</h1>
-    
-    <div class="scan-section">
-        <h2>VirusTotal</h2>
-        {% if scans['VirusTotal'].detected %}
-            <ul>
-                {% for engine, result in scans['VirusTotal'].result.items() %}
-                    <li>
-                        {{ engine }}: 
-                        {% if result.detected %}
-                            <span class="detected">Detected: {{ result.result }}</span>
-                        {% else %}
-                            <span class="not-detected">Not Detected</span>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="not-detected">No results available from VirusTotal.</p>
-        {% endif %}
+
+<h2>Scan Results</h2>
+
+{% if scans %}
+    <div class="result">
+        <h3>VirusTotal</h3>
+        {% for engine, result in scans['VirusTotal']['result'].items() %}
+            <p>
+                {{ engine }}: 
+                {% if result['detected'] %}
+                    <span class="detected">Detected: {{ result['result'] }}</span>
+                {% else %}
+                    <span class="not-detected">Not Detected</span>
+                {% endif %}
+            </p>
+        {% endfor %}
     </div>
+{% else %}
+    <p>No scan results available.</p>
+{% endif %}
+
+<a href="/">Scan another file</a>
+
 </body>
 </html>
