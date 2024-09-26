@@ -4,26 +4,70 @@
     <meta charset="UTF-8">
     <title>Scan Results</title>
     <style>
-        .detected { color: red; font-weight: bold; }
-        .not-detected { color: green; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .scan-section {
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+        .detected {
+            color: red;
+            font-weight: bold;
+        }
+        .not-detected {
+            color: green;
+        }
+        .suspicious {
+            color: orange;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <h1>Scan Results</h1>
+    
     {% for scan_name, scan_data in scans.items() %}
-        <h2>{{ scan_name }}</h2>
-        {% if scan_data.detected %}
-            <p class="detected">Detected: {{ scan_data.result }}</p>
-            {% if scan_name == 'VirusTotal' %}
-                <ul>
-                    {% for engine, result in scan_data.result.items() %}
-                        <li>{{ engine }}: {% if result.detected %} Detected: {{ result.result }} {% else %} Not Detected {% endif %}</li>
-                    {% endfor %}
-                </ul>
+        <div class="scan-section">
+            <h2>{{ scan_name }}</h2>
+            {% if scan_data.detected %}
+                <p class="detected">Detected: {{ scan_data.result }}</p>
+                {% if scan_name == 'VirusTotal' %}
+                    <ul>
+                        {% for engine, result in scan_data.result.items() %}
+                            <li>
+                                {{ engine }}: 
+                                {% if result.detected %}
+                                    <span class="detected">Detected: {{ result.result }}</span>
+                                {% else %}
+                                    <span class="not-detected">Not Detected</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% else %}
+                <p class="not-detected">Not Detected</p>
             {% endif %}
+        </div>
+    {% endfor %}
+    
+    <div class="scan-section">
+        <h2>Hybrid Analysis</h2>
+        {% if scans['Hybrid Analysis'].detected %}
+            <p class="suspicious">{{ scans['Hybrid Analysis'].result }}</p>
         {% else %}
             <p class="not-detected">Not Detected</p>
         {% endif %}
-    {% endfor %}
+    </div>
 </body>
 </html>
