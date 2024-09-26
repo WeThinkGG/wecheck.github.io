@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>File Scanner</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload File for Scanning</h1>
+        <form id="fileUploadForm" method="POST" enctype="multipart/form-data" action="/scan">
+            <input type="file" name="file" required>
+            <button type="submit">Scan File</button>
+        </form>
+        <div id="loading" style="display:none;">
+            <img src="{{ url_for('static', filename='images/loading.gif') }}" alt="Loading...">
+            <p>Scanning the file, please wait...</p>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('fileUploadForm');
+        const loadingDiv = document.getElementById('loading');
+        const resultDiv = document.getElementById('result');
+
+        form.addEventListener('submit', function() {
+            loadingDiv.style.display = 'block';
+        });
+    </script>
+</body>
+</html>
