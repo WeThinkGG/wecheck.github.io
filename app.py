@@ -1,6 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
-import joblib
-import numpy as np
+from flask import Flask, request, jsonify, render_template
 import requests
 import os
 import hashlib
@@ -9,57 +7,40 @@ import threading
 
 app = Flask(__name__)
 
-# Load AI model
-model = joblib.load('malware_detection_model.pkl')  # Your AI model for malware detection
-
-# API keys (Use environment variables for security)
-VIRUSTOTAL_API_KEY = os.getenv('VIRUSTOTAL_API_KEY')
-HYBRID_ANALYSIS_API_KEY = os.getenv('HYBRID_ANALYSIS_API_KEY')
-METADEFENDER_API_KEY = os.getenv('METADEFENDER_API_KEY')
-JOTTI_API_URL = 'https://jotti.org/api'
-CLEANMX_API_URL = 'https://cleanmx.org/api/'
-
-# Feature extraction placeholder function
-def extract_features(file):
-    return np.random.rand(10)
+# Assign API Keys directly (for development/testing purposes only)
+VIRUSTOTAL_API_KEY = '12ffa54ff741d2df87e2f09074d91b6f69c514654e73d6b1eb29d8497f8b5fb0'
+HYBRID_ANALYSIS_API_KEY = 'v051739qfe362472i4aj097h6f975483dqnqsiawab71a92d080vdmyua2f9066a'
 
 # VirusTotal check
 def check_with_virustotal(file_hash):
-    params = {'apikey': VIRUSTOTAL_API_KEY, 'resource': file_hash}
-    response = requests.get('https://www.virustotal.com/vtapi/v2/file/report', params=params)
-    return response.json()
+    try:
+        params = {'apikey': VIRUSTOTAL_API_KEY, 'resource': file_hash}
+        response = requests.get('https://www.virustotal.com/vtapi/v2/file/report', params=params)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise Exception("VirusTotal API failure")
+    except Exception as e:
+        print(f"VirusTotal failed: {e}")
+        return None
 
-# Hybrid Analysis check
+# Fallback: Hybrid Analysis check
 def check_with_hybrid_analysis(file):
-    files = {'file': open(file, 'rb')}
-    headers = {'api-key': HYBRID_ANALYSIS_API_KEY}
-    response = requests.post('https://www.hybrid-analysis.com/api/v2/scan/file', headers=headers, files=files)
-    return response.json()
+    try:
+        files = {'file': open(file, 'rb')}
+        headers = {'api-key': HYBRID_ANALYSIS_API_KEY}
+        response = requests.post('https://www.hybrid-analysis.com/api/v2/scan/file', headers=headers, files=files)
+        return response.json()
+    except Exception as e:
+        print(f"Hybrid Analysis failed: {e}")
+        return None
 
-# MetaDefender check
-def check_with_metadefender(file):
-    files = {'file': open(file, 'rb')}
-    headers = {'apikey': METADEFENDER_API_KEY}
-    response = requests.post('https://metadefender.opswat.com/v4/file', headers=headers, files=files)
-    return response.json()
-
-# Jotti check
-def check_with_jotti(file):
-    files = {'file': open(file, 'rb')}
-    response = requests.post(JOTTI_API_URL, files=files)
-    return response.json()
-
-# CLEAN MX check
-def check_with_cleanmx(file_hash):
-    params = {'apikey': CLEANMX_API_URL, 'resource': file_hash}
-    response = requests.get(f'{CLEANMX_API_URL}/file/{file_hash}', params=params)
-    return response.json()
-
-# Deletes a file after a delay (5 minutes)
+# Deletes a file after a delay (1 minute)
 def delete_file_after_delay(filename, delay):
     time.sleep(delay)
     if os.path.exists(filename):
         os.remove(filename)
+        print(f"File {filename} has been deleted from the system.")
 
 @app.route('/')
 def index():
@@ -76,43 +57,28 @@ def scan_file():
     # Calculate file hash (MD5)
     file_hash = hashlib.md5(open(file.filename, 'rb').read()).hexdigest()
 
-    # API checks
+    # First attempt to scan using VirusTotal
     vt_result = check_with_virustotal(file_hash)
-    ha_result = check_with_hybrid_analysis(file.filename)
-    md_result = check_with_metadefender(file.filename)
-    jotti_result = check_with_jotti(file.filename)
-    cleanmx_result = check_with_cleanmx(file_hash)
-
-    # AI-based prediction
-    features = extract_features(file)
-    prediction = model.predict([features])
-
-    response = {
-        'file_name': file.filename,
-        'isMalicious': bool(prediction[0]),
-        'virus_total': vt_result,
-        'hybrid_analysis': ha_result,
-        'metadefender': md_result,
-        'jotti': jotti_result,
-        'cleanmx': cleanmx_result
-    }
-
-    # Delete file after 5 minutes
-    threading.Thread(target=delete_file_after_delay, args=(file.filename, 300)).start()
-
-    if prediction[0]:  # Suspicious file
-        return redirect(url_for('suspicious', result=response))
+    if vt_result:
+        scan_result = {
+            'scan_source': 'VirusTotal',
+            'scan_data': vt_result
+        }
     else:
-        return jsonify(response)
+        # If VirusTotal fails, use Hybrid Analysis as fallback
+        ha_result = check_with_hybrid_analysis(file.filename)
+        if ha_result:
+            scan_result = {
+                'scan_source': 'Hybrid Analysis',
+                'scan_data': ha_result
+            }
+        else:
+            return jsonify({'error': 'All scan services failed'}), 500
 
-@app.route('/suspicious')
-def suspicious():
-    result = request.args.get('result', default='', type=str)
-    return render_template('suspicious.html', result=result)
+    # Delete file after 1 minute (60 seconds)
+    threading.Thread(target=delete_file_after_delay, args=(file.filename, 60)).start()
 
-@app.route('/remove_suspicious_page')
-def remove_suspicious_page():
-    return redirect(url_for('index'))
+    return render_template('scan_result.html', result=scan_result)
 
 if __name__ == '__main__':
     app.run(debug=True)
