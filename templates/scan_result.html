@@ -36,37 +36,23 @@
 <body>
     <h1>Scan Results</h1>
     
-    {% for scan_name, scan_data in scans.items() %}
-        <div class="scan-section">
-            <h2>{{ scan_name }}</h2>
-            {% if scan_data.detected %}
-                <p class="detected">Detected: {{ scan_data.result }}</p>
-                {% if scan_name == 'VirusTotal' %}
-                    <ul>
-                        {% for engine, result in scan_data.result.items() %}
-                            <li>
-                                {{ engine }}: 
-                                {% if result.detected %}
-                                    <span class="detected">Detected: {{ result.result }}</span>
-                                {% else %}
-                                    <span class="not-detected">Not Detected</span>
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            {% else %}
-                <p class="not-detected">Not Detected</p>
-            {% endif %}
-        </div>
-    {% endfor %}
-    
     <div class="scan-section">
-        <h2>Hybrid Analysis</h2>
-        {% if scans['Hybrid Analysis'].detected %}
-            <p class="suspicious">{{ scans['Hybrid Analysis'].result }}</p>
+        <h2>VirusTotal</h2>
+        {% if scans['VirusTotal'].detected %}
+            <ul>
+                {% for engine, result in scans['VirusTotal'].result.items() %}
+                    <li>
+                        {{ engine }}: 
+                        {% if result.detected %}
+                            <span class="detected">Detected: {{ result.result }}</span>
+                        {% else %}
+                            <span class="not-detected">Not Detected</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
         {% else %}
-            <p class="not-detected">Not Detected</p>
+            <p class="not-detected">No results available from VirusTotal.</p>
         {% endif %}
     </div>
 </body>
