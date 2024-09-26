@@ -61,24 +61,25 @@ def scan_file():
     vt_result = check_with_virustotal(file_hash)
     if vt_result:
         scan_result = {
-            'scan_source': 'VirusTotal',
-            'scan_data': vt_result
+            'scan_data': vt_result  # Direct report from VirusTotal
         }
     else:
         # If VirusTotal fails, use Hybrid Analysis as fallback
         ha_result = check_with_hybrid_analysis(file.filename)
         if ha_result:
             scan_result = {
-                'scan_source': 'Hybrid Analysis',
-                'scan_data': ha_result
+                'scan_data': ha_result  # Direct report from Hybrid Analysis
             }
         else:
             return jsonify({'error': 'All scan services failed'}), 500
 
+    # Message to indicate file will be deleted after 1 minute
+    deletion_message = "This file will be deleted from our system after 1 minute."
+
     # Delete file after 1 minute (60 seconds)
     threading.Thread(target=delete_file_after_delay, args=(file.filename, 60)).start()
 
-    return render_template('scan_result.html', result=scan_result)
+    return render_template('scan_result.html', result=scan_result, deletion_message=deletion_message)
 
 if __name__ == '__main__':
     app.run(debug=True)
