@@ -7,6 +7,10 @@ app = Flask(__name__)
 # Replace with your actual VirusTotal API key
 VIRUSTOTAL_API_KEY = 'YOUR_VIRUSTOTAL_API_KEY'
 
+# Ensure the uploads directory exists
+UPLOAD_FOLDER = 'uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -17,7 +21,7 @@ def scan_file():
         return "No file uploaded", 400
     
     file = request.files['file']
-    file_path = os.path.join('uploads', file.filename)
+    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(file_path)
 
     # Scan the file with VirusTotal
