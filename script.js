@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const validPaths = ["", "about", "resume", "portfolio"]; // Add all valid paths here
+    const validPaths = [""]; // Add all valid paths here
 
     // Check if the path is valid
     const path = window.location.pathname.split("/").pop();
